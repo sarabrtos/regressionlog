@@ -1,0 +1,45 @@
+library(readxl)
+install.packages("dplyr")
+library(dplyr)
+install.packages("emmeans")
+
+dados <- read_excel("/Users/HomePC/Downloads/dados.xlsx")
+dados$type <- factor(dados$type,
+                     levels = c("raw", "mic"))
+
+dados$dose <- factor(dados$dose,
+                     levels = c(50, 150, 450))
+
+modelo <- glm(occurrence ~ type * dose,
+              data = dados,
+              family = binomial)
+
+summary(modelo)
+
+library(emmeans)
+
+modelo <- glm(occurrence ~ type * dose,
+              data = dados,
+              family = binomial)
+
+comparacoes <- emmeans(modelo,
+                       ~ type | dose,
+                       type = "response")
+
+pairs(comparacoes, adjust = "holm")
+
+comparacoes
+
+modelo_simples <- glm(occurrence ~ type + dose, data = dados, family = binomial)
+
+summary(modelo_simples)
+
+anova(modelo_simples, modelo, test = "Chisq")
+
+library(emmeans)
+
+
+comparacoes_doses <- emmeans(modelo, specs = pairwise ~ type | dose, type = "response")
+
+comparacoes_doses$contrasts
+
